@@ -27,4 +27,5 @@ function handleRequest(e) {
 
  cell.getRange("B2").setValue(e.parameter.ipaddress);
  cell.getRange("B3").setValue(d.toLocaleTimeString());
+ cell.getRange("B4").setValue(e.parameter.probeid);
 }

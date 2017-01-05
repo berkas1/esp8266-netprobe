@@ -23,6 +23,9 @@ const char* googleURL = "";
 // your api key - simple protection for your Apps scrip -> choose random string
 const char* googleApiKey = "";
 
+// probe ID - every request is identified by ID, so it can be managed automatically 
+const char* probeid = "netprobe";
+
 ////////////////////////////////////////////
 // END OF CONFIGURATION
 // please DO NOT change code bellow
@@ -107,7 +110,8 @@ void makeRequestGoogle() {
         Serial.println("SSL verify: FAIL");
     }
 
-    client.printRedir(googleURL + String("?apiKey=") + googleApiKey + "&ipaddress=" + ipAddress, googleHost, googleRedirHost);
+    client.printRedir(googleURL + String("?apiKey=") + googleApiKey + 
+        "&ipaddress=" + ipAddress + "&probeid=" + probeid, googleHost, googleRedirHost);
     // with help of HTTPSRedirect
     // https://github.com/electronicsguy/ESP8266/HTTPSRedirect/
 }
