@@ -1,6 +1,10 @@
-var ss = SpreadsheetApp.openById("1c3zX-PwQYtEjZuLDZI_iYSxzch3o3G64OTTaQaYjEJA");
-var apiKey = "dg4987pfgmjl4j8lhj1dfd";
+///////////////////////////
+// CONFIGURATION
+var ss = SpreadsheetApp.openById("");
+var apiKey = "";
 
+// END OF CONFIGURATION
+///////////////////////////
 
 function doGet(e) {
   if (!e.parameter.apiKey) {
