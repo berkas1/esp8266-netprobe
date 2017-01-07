@@ -22,6 +22,9 @@ It uses [ipify.org](https://api.ipify.org/) to determine ip address and [HTTPSRe
 6. Copy&paste the shown web app URL (everything behind '.google.com') to the .ino file 
 7. Upload code to esp8266
 
+### LED Indication
+When LED Indication is enabled, LED light connected to *ledGreed* is powered for 1500 milliseconds when the connection to Google was successful. If not, LED light connected to *ledRed* is powered for 1500 milliseconds.
+
 ### TODO
 - LED light to show success/failure during sending data to Google
 - Ethernet connection

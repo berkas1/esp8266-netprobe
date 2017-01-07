@@ -26,6 +26,12 @@ const char* googleApiKey = "";
 // probe ID - every request is identified by ID, so it can be managed automatically 
 const char* probeid = "netprobe";
 
+// LED indication
+// flashes green or red light when connection was successful or unsuccessful
+const bool ledEnabled = false;
+const int ledGreen = 4; // nodemcu D2
+const int ledRed = 5; // nodemcu D1
+
 ////////////////////////////////////////////
 // END OF CONFIGURATION
 // please DO NOT change code bellow
@@ -76,7 +82,8 @@ void getIpAddress() {
     ipAddress = client.readStringUntil('\n');
 }
 
-void makeRequestGoogle() {
+int makeRequestGoogle() {
+    int status = 0;
     // fingerprint of script.google.com
     const char* fingerprint = "0D 9A 55 12 4E A0 73 BE DD 1C 02 36 B5 D1 BA 91 66 A6 42 39";
     const char* googleRedirHost = "script.googleusercontent.com";
@@ -86,14 +93,14 @@ void makeRequestGoogle() {
     Serial.println(googleHost);
 
     bool flag = false;
-    for (int i=0; i<5; i++){
-      int retval = client.connect(googleHost, 443);
-      if (retval == 1) {
-         flag = true;
-         break;
-      }
-      else
-        Serial.println("Connection failed. Retrying...");
+    for (int i=0; i<5; i++) {
+        int retval = client.connect(googleHost, 443);
+        if (retval == 1) {
+            flag = true;
+            break;
+        } else {
+            Serial.println("Connection failed. Retrying...");
+        }
     }
 
     Serial.flush();
@@ -101,17 +108,55 @@ void makeRequestGoogle() {
        Serial.print("Could not connect to server: ");
        Serial.println(googleHost);
        Serial.println("Exiting...");
-       return;
+       status = 1;
+       return status;
     }
 
     if (client.verify(fingerprint, googleHost)) {
         Serial.println("SSL verify: OK");
     } else {
         Serial.println("SSL verify: FAIL");
+        status = 2;
     }
 
-    client.printRedir(googleURL + String("?apiKey=") + googleApiKey + 
-        "&ipaddress=" + ipAddress + "&probeid=" + probeid, googleHost, googleRedirHost);
+    if (client.printRedir(googleURL + String("?apiKey=") + googleApiKey +
+                "&ipaddress=" + ipAddress + "&probeid=" + probeid, googleHost, googleRedirHost)) {
+        if (status != 2) {
+            status = 0;
+        }
+    } else {
+        status = 3;
+    }
+
+    // control LED indication
+    if (!ledEnabled) {
+        return status;
+    }
+
+    // LED blinking control
+    switch (status) {
+        case 0:
+            digitalWrite(ledGreen, HIGH);
+            delay(1500);
+            digitalWrite(ledGreen, LOW);
+        case 1:
+            digitalWrite(ledRed, HIGH);
+            delay(1500);
+            digitalWrite(ledRed, LOW);
+        case 2:
+            digitalWrite(ledRed, HIGH);
+            delay(500);
+            digitalWrite(ledRed, LOW);
+            digitalWrite(ledGreen, HIGH);
+            delay(500);
+            digitalWrite(ledGreen, LOW);
+            digitalWrite(ledRed, HIGH);
+            delay(500);
+            digitalWrite(ledRed, LOW);
+    }
+
+    return status;
+
     // with help of HTTPSRedirect
     // https://github.com/electronicsguy/ESP8266/HTTPSRedirect/
 }
@@ -133,11 +178,19 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+
+  if (ledEnabled) {
+      pinMode(ledGreen, OUTPUT);
+      pinMode(ledRed, OUTPUT);
+      digitalWrite(ledGreen, LOW);
+      digitalWrite(ledRed, LOW);
+      Serial.println("LED light indication enabled");
+  }
 }
 
 void loop() {
     getIpAddress();
     Serial.println("Your IP: " + ipAddress);
-    makeRequestGoogle();
+    Serial.println("Request status: " + makeRequestGoogle());
     delay(_mydelay * 1000);
 }
